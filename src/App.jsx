@@ -1,11 +1,14 @@
 import React from 'react'
 import RouteComponent from './Routes/Route'
 import { AuthProvider } from './context/AuthContext'
+import { TodoProvider } from './context/TodoContext'
 
 function App() {
   return (
     <AuthProvider>
-      <RouteComponent/>
+      <TodoProvider>
+        <RouteComponent/>
+      </TodoProvider>
     </AuthProvider>
   )
 }

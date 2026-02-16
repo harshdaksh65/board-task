@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -17,7 +18,7 @@ function Login() {
             return;
         }
 
-        const result = login(email, password);
+        const result = login(email, password, rememberMe);
         if (result.success) {
             toast.success('Login successful!');
             navigate('/');
@@ -77,8 +78,19 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          <div className="flex items-center justify-between py-2 mb-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
+              />
+              <span className="ml-2 text-sm text-gray-600">Remember me</span>
+            </label>
+          </div>
           <button
-            className="w-full bg-background text-text p-2 rounded-2xl mb-6 cursor-pointer hover:bg-white hover:text-black hover:border hover:border-gray-300"
+            className="w-full bg-text-secondary/30 text-text font-semibold p-2 rounded-2xl mb-6 cursor-pointer hover:bg-white hover:text-black hover:border hover:border-gray-300"
             type="submit"
           >
             Log In

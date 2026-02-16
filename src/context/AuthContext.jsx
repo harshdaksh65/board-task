@@ -2,11 +2,14 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-// Hardcoded credentials
 const CREDENTIALS = {
-  email: 'intern@demo.com',
-  password: 'intern123'
+  email: import.meta.env.VITE_AUTH_EMAIL,
+  password: import.meta.env.VITE_AUTH_PASSWORD
 };
+
+// Storage keys
+const USER_KEY = 'user';
+const REMEMBER_KEY = 'rememberMe';
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,28 +17,58 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check localStorage on mount
-    const storedUser = localStorage.getItem('user');
+    const rememberedUser = localStorage.getItem(USER_KEY);
+    const sessionUser = sessionStorage.getItem(USER_KEY);
+    
+    const storedUser = rememberedUser || sessionUser;
+    
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
+      try {
+        setUser(JSON.parse(storedUser));
+        setIsAuthenticated(true);
+      } catch (e) {
+        localStorage.removeItem(USER_KEY);
+        sessionStorage.removeItem(USER_KEY);
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = (email, password) => {
-    if (email === CREDENTIALS.email && password === CREDENTIALS.password) {
+  const login = (email, password, rememberMe = false) => {
+    const isEmailValid = email === CREDENTIALS.email;
+    const isPasswordValid = password === CREDENTIALS.password;
+
+    if (isEmailValid && isPasswordValid) {
       const userData = { email };
-      localStorage.setItem('user', JSON.stringify(userData));
+      
+      localStorage.removeItem(USER_KEY);
+      sessionStorage.removeItem(USER_KEY);
+      
+      if (rememberMe) {
+        localStorage.setItem(USER_KEY, JSON.stringify(userData));
+        localStorage.setItem(REMEMBER_KEY, 'true');
+      } else {
+        sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
+      }
+      
       setUser(userData);
       setIsAuthenticated(true);
       return { success: true };
     }
-    return { success: false, message: 'Invalid email or password' };
+    
+    if (!isEmailValid && !isPasswordValid) {
+      return { success: false, message: 'Invalid email and password' };
+    } else if (!isEmailValid) {
+      return { success: false, message: 'Invalid email' };
+    } else {
+      return { success: false, message: 'Invalid password' };
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(REMEMBER_KEY);
+    sessionStorage.removeItem(USER_KEY);
     setUser(null);
     setIsAuthenticated(false);
   };
